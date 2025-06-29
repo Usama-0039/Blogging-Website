@@ -1,0 +1,51 @@
+name: pr-validation-develop
+on:
+  pull_request:
+    branches:
+      - develop
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  linting-job:
+    name: Linting Job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Lint HTML Files
+        run: npx htmlhint "**/*.html"
+      - name: Install Stylelint
+        run: npm install --save-dev stylelint stylelint-config-standard
+      - name: Lint CSS Files
+        run: npx stylelint "**/*.css"
+      - name: Set status checks for linting
+        run: echo "Linting successful"
+        continue-on-error: true
+
+  Build-Job:
+    name: Build Job
+    runs-on: ubuntu-latest
+    needs: linting-job
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Build Project
+        run: npx parcel build "./src/index.html" --dist-dir "./dist" --public-url "./"
+      - name: Set status checks for build
+        run: echo "Build successful"
+
+  Set-Success-Status:
+    name: Set Success Status
+    needs:
+      - linting-job
+      - Build-Job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set overall success status
+        if: ${{ needs.linting-job.result == 'success' && needs.Build-Job.result == 'success' }}
+        run: echo "::set-output name=status::success"
+      - name: Set overall failure status
+        if: ${{ needs.linting-job.result != 'success' || needs.Build-Job.result != 'success' }}
+        run: echo "::set-output name=status::failure"
