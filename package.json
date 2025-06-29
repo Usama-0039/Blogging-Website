@@ -2,9 +2,10 @@
   "name": "blogging-website",
   "version": "1.0.0",
   "description": "",
-  "main": "index.html",
-  "scripts": {},
-  "author": "",
-  "license": "MIT",
-  "devDependencies": {}
+  "scripts": {
+    "build": "parcel build src/*.html --dist-dir dist --public-url ./"
+  },
+  "devDependencies": {
+    "parcel": "^2.10.0"
+  }
 }
